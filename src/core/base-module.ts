@@ -1,4 +1,4 @@
-import {BaseEntity, CreateDateColumn, PrimaryGeneratedColumn} from "typeorm";
+import {BaseEntity, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
 
 export class BaseModule extends BaseEntity{
     @PrimaryGeneratedColumn()
@@ -6,4 +6,7 @@ export class BaseModule extends BaseEntity{
 
     @CreateDateColumn()
     createdAt!: string
+
+    @UpdateDateColumn()
+    updateAt?: string
 }

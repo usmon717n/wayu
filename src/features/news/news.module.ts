@@ -1,18 +1,27 @@
-import {Module} from '@nestjs/common';
-import {TypeOrmModule} from '@nestjs/typeorm';
-import {CqrsModule} from '@nestjs/cqrs';
-import {NewsEntity} from '../entities/news/news.entity';
-import {NewsCategoriesEntity} from '../entities/news-categories/news-categories.entity';
-import {CountriesEntity} from '../entities/countries/countries.entity';
-import {NewsController} from './news.controller';
-import {NewsService} from './news.service';
-import {NewsRepository} from './news.repository';
-import {NewsCommandHandlers, NewsQueryHandlers} from './news.cqrs';
+import { Module } from "@nestjs/common";
+import { CqrsModule } from "@nestjs/cqrs"; // 1. CqrsModule'ni import qiling
+import { NewsCategoryController } from "./news-category/news-category.controller";
+import { CreateNewsCategoryHandler } from "./news-category/commands/create-news-category/create-news-category.handler";
+import { GetAllNewsCategoriesHandler } from "./news-category/queries/get-all-news-categories/get-all-news-categories.handler";
+import { DeleteNewsCategoryHandler } from "./news-category/commands/delete-news-category/delete-news-category.handler"; // 2. Import qiling
+import { NewsController } from "./news/news.controller";
+import { GetAllNewsHandler } from "./news/queries/get-all-news/get-all-news.handler";
+import { CreateNewsHandler } from "./news/commands/create-news/create-news.handler";
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([NewsEntity, NewsCategoriesEntity, CountriesEntity])],
-  controllers: [NewsController],
-  providers: [NewsService, NewsRepository, ...NewsCommandHandlers, ...NewsQueryHandlers],
-  exports: [NewsService],
+    imports: [
+        CqrsModule
+    ],
+    controllers: [
+        NewsCategoryController,
+        NewsController
+    ],
+    providers: [
+        GetAllNewsCategoriesHandler,
+        CreateNewsCategoryHandler,
+        DeleteNewsCategoryHandler,
+        GetAllNewsHandler,
+        CreateNewsHandler,
+    ]
 })
 export class NewsModule {}
