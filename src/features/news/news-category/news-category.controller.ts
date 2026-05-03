@@ -11,28 +11,28 @@ import {DeleteNewsCategoryCommand} from "./commands/delete-news-category/delete-
 
 @Controller('admin/news-category')
 export class NewsCategoryController {
-    constructor(
-        private readonly commandBus: CommandBus,
-        private readonly queriesBus: QueryBus,
-    ) {
-    }
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queriesBus: QueryBus,
+  ) {
+  }
 
-    @Get()
-    @ApiOkResponse({type: [GetAllNewsCategoriesResponse]})
-    async getAllNewsCategories(@Query() filters: GetAllNewsCategoriesFilters) {
-        return await this.queriesBus.execute(new GetAllNewsCategoriesQuery(filters));
-    }
+  @Get()
+  @ApiOkResponse({type: [GetAllNewsCategoriesResponse]})
+  async getAllNewsCategories(@Query() filters: GetAllNewsCategoriesFilters) {
+    return await this.queriesBus.execute(new GetAllNewsCategoriesQuery(filters));
+  }
 
-    @Post()
-    @ApiCreatedResponse({type: CreateNewsCategoryResponse})
-    async createNewsCategory(@Body() command: CreateNewsCategoryCommand) {
-        return await this.commandBus.execute(command);
-    }
+  @Post()
+  @ApiCreatedResponse({type: CreateNewsCategoryResponse})
+  async createNewsCategory(@Body() command: CreateNewsCategoryCommand) {
+    return await this.commandBus.execute(command);
+  }
 
-    @Delete(':id')
-    async deleteNewsCategory(@Param('id', ParseIntPipe) id: number) {
-        const cmd = new DeleteNewsCategoryCommand();
-        cmd.id = id;
-        return await this.commandBus.execute(cmd);
-    }
+  @Delete(':id')
+  async deleteNewsCategory(@Param('id', ParseIntPipe) id: number) {
+    const cmd = new DeleteNewsCategoryCommand();
+    cmd.id = id;
+    return await this.commandBus.execute(cmd);
+  }
 }

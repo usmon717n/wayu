@@ -1,17 +1,10 @@
-import {ApiProperty} from "@nestjs/swagger";
-import {Type} from "class-transformer";
-import {IsInt, IsOptional} from "class-validator";
+import {ApiProperty} from '@nestjs/swagger';
+import {Type} from 'class-transformer';
+import {IsInt, IsOptional, Min} from 'class-validator';
 
 export class GetAllFaqsTagsFilters {
-    @IsInt()
-    @IsOptional()
-    @ApiProperty({required: false})
-    @Type(() => Number)
-    page?: number;
-
-    @IsInt()
-    @IsOptional()
-    @ApiProperty({required: false})
-    @Type(() => Number)
-    size?: number;
+  @IsOptional() @IsInt() @Min(1) @Type(() => Number) @ApiProperty({required: false}) faqsId?: number;
+  @IsOptional() @IsInt() @Min(1) @Type(() => Number) @ApiProperty({required: false}) tagId?: number;
+  @IsOptional() @IsInt() @Min(1) @Type(() => Number) @ApiProperty({required: false}) page?: number;
+  @IsOptional() @IsInt() @Min(1) @Type(() => Number) @ApiProperty({required: false}) size?: number;
 }

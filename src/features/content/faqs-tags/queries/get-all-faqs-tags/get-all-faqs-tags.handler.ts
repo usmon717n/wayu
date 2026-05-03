@@ -1,17 +1,19 @@
-import {IQueryHandler, QueryHandler} from "@nestjs/cqrs";
-import {plainToInstance} from "class-transformer";
-import {FaqsTagsEntity} from "../../../../entities/faqsTags.entity";
-import {GetAllFaqsTagsQuery} from "./get-all-faqs-tags.query";
-import {GetAllFaqsTagsResponse} from "./get-all-faqs-tags.response";
+import {IQueryHandler, QueryHandler} from '@nestjs/cqrs';
+import {plainToInstance} from 'class-transformer';
+import {FaqsTag} from '@/features/content/faqs-tags/faqs-tag.entity';
+import {FaqsTagDto} from '@/features/content/faqs-tags/faqs-tag.dto';
+import {GetAllFaqsTagsQuery} from './get-all-faqs-tags.query';
 
 @QueryHandler(GetAllFaqsTagsQuery)
 export class GetAllFaqsTagsHandler implements IQueryHandler<GetAllFaqsTagsQuery> {
-    async execute(query: GetAllFaqsTagsQuery): Promise<GetAllFaqsTagsResponse[]> {
-        const take = query.filters.size ?? 10;
-        const currentPage = query.filters.page ?? 1;
-        const skip = (currentPage - 1) * take;
-
-        const list = await FaqsTagsEntity.find({skip, take});
-        return plainToInstance(GetAllFaqsTagsResponse, list, {excludeExtraneousValues: true});
-    }
+  async execute(query: GetAllFaqsTagsQuery): Promise<FaqsTagDto[]> {
+    const take = query.filters.size ?? 10;
+    const page = query.filters.page ?? 1;
+    const skip = (page - 1) * take;
+    const where: {faqsId?: number; tagId?: number} = {};
+    if (query.filters.faqsId !== undefined) where.faqsId = query.filters.faqsId;
+    if (query.filters.tagId !== undefined) where.tagId = query.filters.tagId;
+    const items = await FaqsTag.find({where, skip, take});
+    return plainToInstance(FaqsTagDto, items, {excludeExtraneousValues: true});
+  }
 }

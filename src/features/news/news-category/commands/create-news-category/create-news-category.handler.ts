@@ -1,22 +1,22 @@
-import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
-import {CreateNewsCategoryCommand} from "./create-news-category.command";
-import {NewsCategoriesEntity} from "../../newsCategories.entity";
+import {CreateNewsCategoryCommand} from './create-news-category.command';
+import {CreateNewsCategoryResponse} from './create-news-category.response';
+import {NewsCategory} from "@/features/news/news-category/news-category.entity";
 import {ILike} from "typeorm";
 import {BadRequestException} from "@nestjs/common";
 import {plainToInstance} from "class-transformer";
-import {CreateNewsCategoryResponse} from "./create-news-category.response";
+import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
 
 @CommandHandler(CreateNewsCategoryCommand)
-export class CreateNewsCategoryHandler implements ICommandHandler<CreateNewsCategoryCommand>{
+export class CreateNewsCategoryHandler implements ICommandHandler<CreateNewsCategoryCommand> {
 
-    async execute(command: CreateNewsCategoryCommand): Promise<CreateNewsCategoryResponse> {
-        const alreadyExists = await NewsCategoriesEntity.existsBy({title: ILike(command.title)})
-        if(alreadyExists)
-            throw new BadRequestException("title is already taken")
+  async execute(command: CreateNewsCategoryCommand): Promise<CreateNewsCategoryResponse> {
+    const alreadyExists = await NewsCategory.existsBy({title: ILike(command.title)});
+    if (alreadyExists)
+      throw new BadRequestException("Title is already taken");
 
-        const newNewsCategory = NewsCategoriesEntity.create({title: command.title} as  NewsCategoriesEntity)
-        await NewsCategoriesEntity.save(newNewsCategory)
+    const newNewsCategory = NewsCategory.create({title: command.title} as NewsCategory);
+    await NewsCategory.save(newNewsCategory);
 
-        return plainToInstance(CreateNewsCategoryResponse, newNewsCategory, {excludeExtraneousValues: true})
-    }
+    return plainToInstance(CreateNewsCategoryResponse, newNewsCategory, {excludeExtraneousValues: true});
+  }
 }

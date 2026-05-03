@@ -1,34 +1,19 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToMany} from "typeorm";
-import {BaseModule} from "../../../core/base-module";
-import {NewsCategoriesEntity} from "../news-category/newsCategories.entity";
-import {CountriesEntity} from "../../entities/countries.entity";
-import {NewsTagsEntity} from "../../entities/newstags.entity";
+import {Column, Entity, ManyToOne} from 'typeorm';
+import type {Relation} from "typeorm";
+import {BaseModel} from '@/core/base-model';
+import {NewsCategory} from "@/features/news/news-category/news-category.entity";
 
 @Entity('news')
-export class NewsEntity extends BaseModule{
-    @Column({type: 'varchar', length: 256})
-    title!: string
+export class News extends BaseModel {
+  @Column()
+  categoryId!: number;
 
-    @Column({type: 'varchar', length: 128})
-    image!: string
+  @ManyToOne(() => NewsCategory, newsCategory => newsCategory.news, {onDelete: "RESTRICT"})
+  category?: Relation<NewsCategory>;
 
-    @Column({type: 'timestamp'})
-    date!: Date
+  @Column({length: 256})
+  title!: string;
 
-    @Column({type: 'text'})
-    content!: string
-
-    @Column()
-    categoryId!: number
-
-    @ManyToOne(() => NewsCategoriesEntity, (newscategory) => newscategory.news)
-    @JoinColumn({name: 'newsCategoryId'})
-    newsCategory!: NewsCategoriesEntity
-
-    @ManyToOne(() => CountriesEntity, (country) => country.news, {nullable: true})
-    @JoinColumn({name: 'countryId'})
-    country?: CountriesEntity
-
-    @OneToMany(() => NewsTagsEntity, (newstag) => newstag.news)
-    newstag: NewsTagsEntity[]
+  @Column({length: 256})
+  image!: string;
 }

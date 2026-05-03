@@ -1,52 +1,33 @@
-import {Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query} from "@nestjs/common";
-import {CommandBus, QueryBus} from "@nestjs/cqrs";
-import {ApiCreatedResponse, ApiOkResponse} from "@nestjs/swagger";
-import {CreateFaqsTagRequest} from "./commands/create-faqs-tag/create-faqs-tag.request";
-import {CreateFaqsTagResponse} from "./commands/create-faqs-tag/create-faqs-tag.response";
-import {DeleteFaqsTagCommand} from "./commands/delete-faqs-tag/delete-faqs-tag.command";
-import {UpdateFaqsTagCommand} from "./commands/update-faqs-tag/update-faqs-tag.command";
-import {UpdateFaqsTagRequest} from "./commands/update-faqs-tag/update-faqs-tag.request";
-import {GetFaqsTagByIdQuery} from "./queries/get-faqs-tag-by-id/get-faqs-tag-by-id.query";
-import {GetAllFaqsTagsFilters} from "./queries/get-all-faqs-tags/get-all-faqs-tags.filters";
-import {GetAllFaqsTagsQuery} from "./queries/get-all-faqs-tags/get-all-faqs-tags.query";
-import {GetAllFaqsTagsResponse} from "./queries/get-all-faqs-tags/get-all-faqs-tags.response";
+import {Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Query} from '@nestjs/common';
+import {ApiCreatedResponse, ApiOkResponse} from '@nestjs/swagger';
+import {CommandBus, QueryBus} from '@nestjs/cqrs';
+import {FaqsTagDto} from '@/features/content/faqs-tags/faqs-tag.dto';
+import {CreateFaqsTagsCommand} from './commands/create-faqs-tags/create-faqs-tags.command';
+import {DeleteFaqsTagsCommand} from './commands/delete-faqs-tags/delete-faqs-tags.command';
+import {GetFaqsTagsByKeysQuery} from './queries/get-faqs-tags-by-keys/get-faqs-tags-by-keys.query';
+import {GetAllFaqsTagsQuery} from './queries/get-all-faqs-tags/get-all-faqs-tags.query';
+import {GetAllFaqsTagsFilters} from './queries/get-all-faqs-tags/get-all-faqs-tags.filters';
 
 @Controller('admin/faqs-tags')
 export class FaqsTagsController {
-    constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
+  constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
 
-    @Get()
-    @ApiOkResponse({type: [GetAllFaqsTagsResponse]})
-    async getAll(@Query() filters: GetAllFaqsTagsFilters) {
-        return await this.queryBus.execute(new GetAllFaqsTagsQuery(filters));
-    }
+  @Get() @ApiOkResponse({type: [FaqsTagDto]})
+  async getAll(@Query() filters: GetAllFaqsTagsFilters) { return this.queryBus.execute(new GetAllFaqsTagsQuery(filters)); }
 
-    @Get(':id')
-    @ApiOkResponse({type: CreateFaqsTagResponse})
-    async getById(@Param('id', ParseIntPipe) id: number) {
-        return await this.queryBus.execute(new GetFaqsTagByIdQuery(id));
-    }
+  @Get(':faqsId/:tagId') @ApiOkResponse({type: FaqsTagDto})
+  async getByKeys(@Param('faqsId', ParseIntPipe) faqsId: number, @Param('tagId', ParseIntPipe) tagId: number) {
+    return this.queryBus.execute(new GetFaqsTagsByKeysQuery(faqsId, tagId));
+  }
 
-    @Post()
-    @ApiCreatedResponse({type: CreateFaqsTagResponse})
-    async create(@Body() req: CreateFaqsTagRequest) {
-        return await this.commandBus.execute(req.toCommand());
-    }
+  @Post() @ApiCreatedResponse({type: FaqsTagDto})
+  async create(@Body() command: CreateFaqsTagsCommand) { return this.commandBus.execute(command); }
 
-    @Put(':id')
-    @ApiOkResponse({type: CreateFaqsTagResponse})
-    async update(@Param('id', ParseIntPipe) id: number, @Body() req: UpdateFaqsTagRequest) {
-        const cmd = new UpdateFaqsTagCommand();
-        cmd.id = id;
-        cmd.faqsId = req.faqsId;
-        cmd.tagId = req.tagId;
-        return await this.commandBus.execute(cmd);
-    }
-
-    @Delete(':id')
-    async delete(@Param('id', ParseIntPipe) id: number) {
-        const cmd = new DeleteFaqsTagCommand();
-        cmd.id = id;
-        return await this.commandBus.execute(cmd);
-    }
+  @Delete(':faqsId/:tagId')
+  async remove(@Param('faqsId', ParseIntPipe) faqsId: number, @Param('tagId', ParseIntPipe) tagId: number) {
+    const command = new DeleteFaqsTagsCommand();
+    command.faqsId = faqsId;
+    command.tagId = tagId;
+    return this.commandBus.execute(command);
+  }
 }

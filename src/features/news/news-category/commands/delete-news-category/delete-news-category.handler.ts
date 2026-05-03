@@ -1,22 +1,21 @@
 import {CommandHandler, ICommandHandler} from "@nestjs/cqrs";
-
+import {DeleteNewsCategoryCommand} from "@/features/news/news-category/commands/delete-news-category/delete-news-category.command";
+import {NewsCategory} from "@/features/news/news-category/news-category.entity";
+import {News} from "@/features/news/news/news.entity";
 import {BadRequestException, NotFoundException} from "@nestjs/common";
-import {DeleteNewsCategoryCommand} from "./delete-news-category.command";
-import {NewsEntity} from "../../../news/news.entity";
-import {NewsCategoriesEntity} from "../../newsCategories.entity";
 
 
 @CommandHandler(DeleteNewsCategoryCommand)
 export class DeleteNewsCategoryHandler implements ICommandHandler<DeleteNewsCategoryCommand> {
-    async execute(cmd: DeleteNewsCategoryCommand): Promise<void> {
-        const category = await NewsCategoriesEntity.findOneBy({id: cmd.id});
-        if (!category)
-            throw new NotFoundException("Category with given id not found");
+  async execute(cmd: DeleteNewsCategoryCommand): Promise<void> {
+    const category = await NewsCategory.findOneBy({id: cmd.id});
+    if (!category)
+      throw new NotFoundException("Category with given id not found");
 
-        const hasAnyAttachedNews = await NewsEntity.existsBy({categoryId: cmd.id});
-        if (hasAnyAttachedNews)
-            throw new BadRequestException("Category has attached News, move or delete them first");
+    const hasAnyAttachedNews = await News.existsBy({categoryId: cmd.id});
+    if (hasAnyAttachedNews)
+      throw new BadRequestException("Category has attached News, move or delete them first");
 
-        await NewsCategoriesEntity.remove(category);
-    }
+    await NewsCategory.remove(category);
+  }
 }

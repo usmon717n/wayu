@@ -1,52 +1,37 @@
-import {Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query} from "@nestjs/common";
-import {CommandBus, QueryBus} from "@nestjs/cqrs";
-import {ApiCreatedResponse, ApiOkResponse} from "@nestjs/swagger";
-import {CreateFaqRequest} from "./commands/create-faq/create-faq.request";
-import {CreateFaqResponse} from "./commands/create-faq/create-faq.response";
-import {DeleteFaqCommand} from "./commands/delete-faq/delete-faq.command";
-import {UpdateFaqCommand} from "./commands/update-faq/update-faq.command";
-import {UpdateFaqRequest} from "./commands/update-faq/update-faq.request";
-import {GetFaqByIdQuery} from "./queries/get-faq-by-id/get-faq-by-id.query";
-import {GetAllFaqsFilters} from "./queries/get-all-faqs/get-all-faqs.filters";
-import {GetAllFaqsQuery} from "./queries/get-all-faqs/get-all-faqs.query";
-import {GetAllFaqsResponse} from "./queries/get-all-faqs/get-all-faqs.response";
+import {Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query} from '@nestjs/common';
+import {ApiCreatedResponse, ApiOkResponse} from '@nestjs/swagger';
+import {CommandBus, QueryBus} from '@nestjs/cqrs';
+import {FaqDto} from '@/features/content/faqs/faq.dto';
+import {CreateFaqsCommand} from './commands/create-faqs/create-faqs.command';
+import {UpdateFaqsCommand} from './commands/update-faqs/update-faqs.command';
+import {DeleteFaqsCommand} from './commands/delete-faqs/delete-faqs.command';
+import {GetFaqsByIdQuery} from './queries/get-faqs-by-id/get-faqs-by-id.query';
+import {GetAllFaqsQuery} from './queries/get-all-faqs/get-all-faqs.query';
+import {GetAllFaqsFilters} from './queries/get-all-faqs/get-all-faqs.filters';
 
 @Controller('admin/faqs')
 export class FaqsController {
-    constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
+  constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
 
-    @Get()
-    @ApiOkResponse({type: [GetAllFaqsResponse]})
-    async getAll(@Query() filters: GetAllFaqsFilters) {
-        return await this.queryBus.execute(new GetAllFaqsQuery(filters));
-    }
+  @Get() @ApiOkResponse({type: [FaqDto]})
+  async getAll(@Query() filters: GetAllFaqsFilters) { return this.queryBus.execute(new GetAllFaqsQuery(filters)); }
 
-    @Get(':id')
-    @ApiOkResponse({type: CreateFaqResponse})
-    async getById(@Param('id', ParseIntPipe) id: number) {
-        return await this.queryBus.execute(new GetFaqByIdQuery(id));
-    }
+  @Get(':id') @ApiOkResponse({type: FaqDto})
+  async getById(@Param('id', ParseIntPipe) id: number) { return this.queryBus.execute(new GetFaqsByIdQuery(id)); }
 
-    @Post()
-    @ApiCreatedResponse({type: CreateFaqResponse})
-    async create(@Body() req: CreateFaqRequest) {
-        return await this.commandBus.execute(req.toCommand());
-    }
+  @Post() @ApiCreatedResponse({type: FaqDto})
+  async create(@Body() command: CreateFaqsCommand) { return this.commandBus.execute(command); }
 
-    @Put(':id')
-    @ApiOkResponse({type: CreateFaqResponse})
-    async update(@Param('id', ParseIntPipe) id: number, @Body() req: UpdateFaqRequest) {
-        const cmd = new UpdateFaqCommand();
-        cmd.id = id;
-        cmd.question = req.question;
-        cmd.answer = req.answer;
-        return await this.commandBus.execute(cmd);
-    }
+  @Patch(':id') @ApiOkResponse({type: FaqDto})
+  async update(@Param('id', ParseIntPipe) id: number, @Body() command: UpdateFaqsCommand) {
+    command.id = id;
+    return this.commandBus.execute(command);
+  }
 
-    @Delete(':id')
-    async delete(@Param('id', ParseIntPipe) id: number) {
-        const cmd = new DeleteFaqCommand();
-        cmd.id = id;
-        return await this.commandBus.execute(cmd);
-    }
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const command = new DeleteFaqsCommand();
+    command.id = id;
+    return this.commandBus.execute(command);
+  }
 }

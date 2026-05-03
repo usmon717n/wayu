@@ -1,5 +1,5 @@
 import {Command} from "@nestjs/cqrs";
 
-export class DeleteNewsCategoryCommand extends Command<void>{
-    id!: number
+export class DeleteNewsCategoryCommand extends Command<void> {
+  id!: number;
 }

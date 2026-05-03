@@ -1,52 +1,37 @@
-import {Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query} from "@nestjs/common";
-import {CommandBus, QueryBus} from "@nestjs/cqrs";
-import {ApiCreatedResponse, ApiOkResponse} from "@nestjs/swagger";
-import {CreateCountryRequest} from "./commands/create-country/create-country.request";
-import {CreateCountryResponse} from "./commands/create-country/create-country.response";
-import {DeleteCountryCommand} from "./commands/delete-country/delete-country.command";
-import {UpdateCountryCommand} from "./commands/update-country/update-country.command";
-import {UpdateCountryRequest} from "./commands/update-country/update-country.request";
-import {GetCountryByIdQuery} from "./queries/get-country-by-id/get-country-by-id.query";
-import {GetAllCountriesFilters} from "./queries/get-all-countries/get-all-countries.filters";
-import {GetAllCountriesQuery} from "./queries/get-all-countries/get-all-countries.query";
-import {GetAllCountriesResponse} from "./queries/get-all-countries/get-all-countries.response";
+import {Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query} from '@nestjs/common';
+import {ApiCreatedResponse, ApiOkResponse} from '@nestjs/swagger';
+import {CommandBus, QueryBus} from '@nestjs/cqrs';
+import {CountryDto} from '@/features/content/countries/country.dto';
+import {CreateCountriesCommand} from './commands/create-countries/create-countries.command';
+import {UpdateCountriesCommand} from './commands/update-countries/update-countries.command';
+import {DeleteCountriesCommand} from './commands/delete-countries/delete-countries.command';
+import {GetCountriesByIdQuery} from './queries/get-countries-by-id/get-countries-by-id.query';
+import {GetAllCountriesQuery} from './queries/get-all-countries/get-all-countries.query';
+import {GetAllCountriesFilters} from './queries/get-all-countries/get-all-countries.filters';
 
 @Controller('admin/countries')
 export class CountriesController {
-    constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
+  constructor(private readonly commandBus: CommandBus, private readonly queryBus: QueryBus) {}
 
-    @Get()
-    @ApiOkResponse({type: [GetAllCountriesResponse]})
-    async getAll(@Query() filters: GetAllCountriesFilters) {
-        return await this.queryBus.execute(new GetAllCountriesQuery(filters));
-    }
+  @Get() @ApiOkResponse({type: [CountryDto]})
+  async getAll(@Query() filters: GetAllCountriesFilters) { return this.queryBus.execute(new GetAllCountriesQuery(filters)); }
 
-    @Get(':id')
-    @ApiOkResponse({type: CreateCountryResponse})
-    async getById(@Param('id', ParseIntPipe) id: number) {
-        return await this.queryBus.execute(new GetCountryByIdQuery(id));
-    }
+  @Get(':id') @ApiOkResponse({type: CountryDto})
+  async getById(@Param('id', ParseIntPipe) id: number) { return this.queryBus.execute(new GetCountriesByIdQuery(id)); }
 
-    @Post()
-    @ApiCreatedResponse({type: CreateCountryResponse})
-    async create(@Body() req: CreateCountryRequest) {
-        return await this.commandBus.execute(req.toCommand());
-    }
+  @Post() @ApiCreatedResponse({type: CountryDto})
+  async create(@Body() command: CreateCountriesCommand) { return this.commandBus.execute(command); }
 
-    @Put(':id')
-    @ApiOkResponse({type: CreateCountryResponse})
-    async update(@Param('id', ParseIntPipe) id: number, @Body() req: UpdateCountryRequest) {
-        const cmd = new UpdateCountryCommand();
-        cmd.id = id;
-        cmd.title = req.title;
-        cmd.flag = req.flag;
-        return await this.commandBus.execute(cmd);
-    }
+  @Patch(':id') @ApiOkResponse({type: CountryDto})
+  async update(@Param('id', ParseIntPipe) id: number, @Body() command: UpdateCountriesCommand) {
+    command.id = id;
+    return this.commandBus.execute(command);
+  }
 
-    @Delete(':id')
-    async delete(@Param('id', ParseIntPipe) id: number) {
-        const cmd = new DeleteCountryCommand();
-        cmd.id = id;
-        return await this.commandBus.execute(cmd);
-    }
+  @Delete(':id')
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const command = new DeleteCountriesCommand();
+    command.id = id;
+    return this.commandBus.execute(command);
+  }
 }
