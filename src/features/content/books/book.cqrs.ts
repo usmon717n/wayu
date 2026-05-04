@@ -2,7 +2,7 @@ import {NotFoundException} from '@nestjs/common';
 import {ApiProperty} from '@nestjs/swagger';
 import {Command, CommandHandler, ICommandHandler, IQueryHandler, Query, QueryHandler} from '@nestjs/cqrs';
 import {plainToInstance, Type} from 'class-transformer';
-import {IsInt, IsOptional, IsString, MaxLength, Min} from 'class-validator';
+import {Allow, IsInt, IsOptional, IsString, MaxLength, Min} from 'class-validator';
 import {Author} from '@/features/content/authors/author.entity';
 import {BookCategory} from '@/features/content/book-categories/book-category.entity';
 import {Book} from '@/features/content/books/book.entity';
@@ -12,7 +12,7 @@ export class CreateBookCommand extends Command<BookDto> {
   @IsInt() @Min(1) @Type(() => Number) @ApiProperty() authorId!: number;
   @IsInt() @Min(1) @Type(() => Number) @ApiProperty() categoryId!: number;
   @IsString() @MaxLength(256) @ApiProperty() title!: string;
-  @IsString() @MaxLength(128) @ApiProperty() image!: string;
+  @ApiProperty({type: 'string', format: 'binary'}) @Allow() image!: string;
   @IsOptional() @IsString() @ApiProperty({required: false, nullable: true}) description?: string;
   @IsString() @MaxLength(256) @ApiProperty() file!: string;
   @IsInt() @Min(1) @Type(() => Number) @ApiProperty() pages!: number;

@@ -1,6 +1,6 @@
 import {ApiProperty} from '@nestjs/swagger';
 import {Command} from '@nestjs/cqrs';
-import {IsString, MaxLength} from 'class-validator';
+import {Allow, IsString, MaxLength} from 'class-validator';
 import {CountryDto} from '@/features/content/countries/country.dto';
 
 export class CreateCountriesCommand extends Command<CountryDto> {
@@ -9,8 +9,7 @@ export class CreateCountriesCommand extends Command<CountryDto> {
   @ApiProperty()
   title!: string;
 
-  @IsString()
-  @MaxLength(128)
-  @ApiProperty()
+  @ApiProperty({type: 'string', format: 'binary'})
+  @Allow()
   flag!: string;
 }

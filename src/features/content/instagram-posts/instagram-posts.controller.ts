@@ -1,5 +1,5 @@
-import {Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query} from '@nestjs/common';
-import {ApiCreatedResponse, ApiOkResponse} from '@nestjs/swagger';
+import {BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UploadedFile, UseInterceptors} from '@nestjs/common';
+import {ApiConsumes, ApiCreatedResponse, ApiOkResponse} from '@nestjs/swagger';
 import {CommandBus, QueryBus} from '@nestjs/cqrs';
 import {InstagramPostDto} from '@/features/content/instagram-posts/instagram-post.dto';
 import {CreateInstagramPostsCommand} from './commands/create-instagram-posts/create-instagram-posts.command';
@@ -8,6 +8,9 @@ import {DeleteInstagramPostsCommand} from './commands/delete-instagram-posts/del
 import {GetInstagramPostsByIdQuery} from './queries/get-instagram-posts-by-id/get-instagram-posts-by-id.query';
 import {GetAllInstagramPostsQuery} from './queries/get-all-instagram-posts/get-all-instagram-posts.query';
 import {GetAllInstagramPostsFilters} from './queries/get-all-instagram-posts/get-all-instagram-posts.filters';
+import {FileInterceptor} from '@nestjs/platform-express';
+import {storageOptions} from '@/configs/multer.config';
+import fs from 'fs';
 
 @Controller('admin/instagram-posts')
 export class InstagramPostsController {
@@ -19,8 +22,19 @@ export class InstagramPostsController {
   @Get(':id') @ApiOkResponse({type: InstagramPostDto})
   async getById(@Param('id', ParseIntPipe) id: number) { return this.queryBus.execute(new GetInstagramPostsByIdQuery(id)); }
 
-  @Post() @ApiCreatedResponse({type: InstagramPostDto})
-  async create(@Body() command: CreateInstagramPostsCommand) { return this.commandBus.execute(command); }
+  @Post() @ApiCreatedResponse({type: InstagramPostDto}) @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('image', {storage: storageOptions, limits: {fileSize: 1024 * 1024 * 5}}))
+  async create(@Body() command: CreateInstagramPostsCommand, @UploadedFile() image: Express.Multer.File) {
+    if (!image) throw new BadRequestException('Image file is required');
+    command.image = image.filename;
+
+    try {
+      return await this.commandBus.execute(command);
+    } catch (error) {
+      if (fs.existsSync(image.path)) fs.rmSync(image.path);
+      throw error;
+    }
+  }
 
   @Patch(':id') @ApiOkResponse({type: InstagramPostDto})
   async update(@Param('id', ParseIntPipe) id: number, @Body() command: UpdateInstagramPostsCommand) {
